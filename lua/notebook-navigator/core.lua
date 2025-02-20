@@ -121,11 +121,11 @@ M.run_and_move = function(cell_marker, repl_provider, repl_args)
   end
 end
 
-M.run_all_cells = function(repl_provider, repl_args)
+M.run_all_cells = function(cell_marker, repl_provider, repl_args)
   local buf_length = vim.api.nvim_buf_line_count(0)
 
   local repl = get_repl(repl_provider)
-  repl(1, buf_length, repl_args)
+  repl(1, buf_length, repl_args, cell_marker)
 end
 
 M.run_cells_below = function(cell_marker, repl_provider, repl_args)
@@ -133,7 +133,7 @@ M.run_cells_below = function(cell_marker, repl_provider, repl_args)
   local cell_object = miniai_spec("i", cell_marker)
 
   local repl = get_repl(repl_provider)
-  repl(cell_object.from.line, buf_length, repl_args)
+  repl(cell_object.from.line, buf_length, repl_args, cell_marker)
 end
 
 M.merge_cell = function(dir, cell_marker)
