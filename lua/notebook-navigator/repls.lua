@@ -41,6 +41,17 @@ repls.toggleterm = function(start_line, end_line, repl_args, cell_marker)
   return true
 end
 
+local function molten_eval_range(start_line, end_line)
+  local ok, _ = pcall(vim.fn.MoltenEvaluateRange, start_line, end_line)
+
+  if not ok then
+    vim.cmd [[MoltenInit]]
+    return false
+  end
+
+  return ok
+end
+
 -- molten
 ---@diagnostic disable-next-line: unused-local
 repls.molten = function(start_line, end_line, repl_args, cell_marker)
@@ -50,12 +61,28 @@ repls.molten = function(start_line, end_line, repl_args, cell_marker)
     vim.api.nvim_buf_set_lines(0, end_line + 1, end_line + 1, false, { cell_marker, "" })
   end
 
-  local ok, _ = pcall(vim.fn.MoltenEvaluateRange, start_line, end_line)
-  if not ok then
-    vim.cmd "MoltenInit"
-    return false
+  local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line, false)
+
+  local cell_marker_line = start_line
+  for i, line in ipairs(lines) do
+    if vim.startswith(line, cell_marker) then
+      -- lines[1] is line_nr (1-indexed) = start_line + 1
+      -- lines[i] is line_nr (1-indexed) = start_line + i
+      local current_line = start_line + i
+      -- don't evaluate the current line - the next cell marker line
+      if not molten_eval_range(cell_marker_line, current_line - 1) then
+        return false
+      end
+      cell_marker_line = current_line
+    end
   end
 
+  -- even if we don't have a cell marker at the end of the cell, we should still evaluate the last line
+  if cell_marker_line < end_line then
+    if not molten_eval_range(cell_marker_line, end_line) then
+      return false
+    end
+  end
   return true
 end
 
