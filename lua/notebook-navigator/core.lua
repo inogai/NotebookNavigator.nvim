@@ -136,6 +136,13 @@ M.run_cells_below = function(cell_marker, repl_provider, repl_args)
   repl(cell_object.from.line, buf_length, repl_args, cell_marker)
 end
 
+M.run_cells_above = function(cell_marker, repl_provider, repl_args)
+  local cell_object = miniai_spec("i", cell_marker)
+
+  local repl = get_repl(repl_provider)
+  repl(1, cell_object.to.line, repl_args, cell_marker)
+end
+
 M.merge_cell = function(dir, cell_marker)
   local search_res
   local result
